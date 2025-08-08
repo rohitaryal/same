@@ -15,7 +15,7 @@ import (
 
 var Color = map[string]string{
 	"ERROR":   color.HiRedString("[✕]"),
-	"INFO":    color.HiCyanString("[i]"),
+	"INFO":    color.HiMagentaString("[i]"),
 	"LOADING": color.HiBlueString("[*]"),
 	"SUCCESS": color.HiGreenString("[✓]"),
 	"WARNING": color.HiYellowString("[✕]"),
@@ -67,18 +67,85 @@ func main() {
 		backupFile += ".same"
 	}
 
-	if backupMode {
-		fmt.Printf("%s Backing up: %s\n", Color["INFO"], backupDirectory)
-		backup()
-	}
-
 	if checkupMode {
 		fmt.Printf("%s Check-up started using: %s\n", Color["INFO"], backupFile)
 		checkup()
+		return
+	}
+
+	if backupMode {
+		fmt.Printf("%s Backing up: %s\n", Color["INFO"], backupDirectory)
+		backup()
+		return
 	}
 }
 
-func checkup() {}
+func checkup() {
+	file, err := os.Open(backupFile)
+	if err != nil {
+		fmt.Printf("%s Failed to open backup file: %s\n", Color["ERROR"], backupFile)
+	}
+
+	decoder := gob.NewDecoder(file)
+	var loadedRoot scanner.File
+	if err = decoder.Decode(&loadedRoot); err != nil {
+		fmt.Printf("%s Failed to read from backup file: %s\n", Color["ERROR"], backupFile)
+		fmt.Println(err)
+	}
+
+	success := 0
+	errored := 0
+
+	// Just a variable to track last scan was error or not
+	// so that we can decide if we dont need to print '\n'
+	lastError := false
+	channel := make(chan *scanner.File)
+
+	go func() {
+		nestedCheck(&loadedRoot, channel)
+
+		close(channel)
+	}()
+
+	for file := range channel {
+		if file.Errored && file.Remarks == "INVALID HASH" {
+			errored += 1
+			lastError = true
+			fmt.Printf("\n%s Integrity failed: %s", Color["ERROR"], file.FullPath)
+		} else {
+			lastError = false
+			success += 1
+		}
+
+		// This
+		if lastError {
+			fmt.Println()
+		}
+		fmt.Print("\033[2K\r")
+		fmt.Printf("\r%s Valid Integrity: %d \t Invalid Integrity: %d", Color["LOADING"], success, errored)
+	}
+	fmt.Printf("\r%s Valid Integrity: %d \t Invalid Integrity: %d", Color["SUCCESS"], success, errored)
+
+	fmt.Println()
+}
+
+func nestedCheck(file *scanner.File, channel chan *scanner.File) {
+	if file.IsDirectory {
+		for _, child := range file.Contents {
+			nestedCheck(child, channel)
+		}
+		return
+	}
+
+	// Tricky but not really
+	file.Errored = !hasher.CompareHash(file.FullPath, file.Remarks, hashMode)
+
+	if file.Errored {
+		file.Remarks = "INVALID HASH"
+	}
+
+	channel <- file
+}
 
 func backup() {
 	channel := make(chan *scanner.File, 100)
@@ -114,7 +181,7 @@ func backup() {
 				errored += 1
 			}
 		}
-
+		fmt.Print("\033[2K\r")
 		fmt.Printf("\r%s Total Scanned: %d   Saved: %d   Failure: %d", Color["LOADING"], scanned, scanned-errored, errored)
 	}
 
