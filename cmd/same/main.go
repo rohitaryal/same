@@ -96,9 +96,6 @@ func checkup() {
 	success := 0
 	errored := 0
 
-	// Just a variable to track last scan was error or not
-	// so that we can decide if we dont need to print '\n'
-	lastError := false
 	channel := make(chan *scanner.File)
 
 	go func() {
@@ -107,24 +104,29 @@ func checkup() {
 		close(channel)
 	}()
 
+	var invalidFiles []*scanner.File
+
 	for file := range channel {
 		if file.Errored && file.Remarks == "INVALID HASH" {
 			errored += 1
-			lastError = true
-			fmt.Printf("\n%s Integrity failed: %s", Color["ERROR"], file.FullPath)
+			invalidFiles = append(invalidFiles, file)
 		} else {
-			lastError = false
 			success += 1
 		}
 
-		// This
-		if lastError {
-			fmt.Println()
-		}
 		fmt.Print("\033[2K\r")
 		fmt.Printf("\r%s Valid Integrity: %d \t Invalid Integrity: %d", Color["LOADING"], success, errored)
 	}
+
 	fmt.Printf("\r%s Valid Integrity: %d \t Invalid Integrity: %d", Color["SUCCESS"], success, errored)
+
+	if len(invalidFiles) > 0 {
+		fmt.Printf("\n%s %d files with compromised integrity:", Color["WARNING"], len(invalidFiles))
+
+		for _, file := range invalidFiles {
+			fmt.Printf("\n\t%s %s", color.BlueString("-"), file.FullPath)
+		}
+	}
 
 	fmt.Println()
 }
