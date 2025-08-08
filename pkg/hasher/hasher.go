@@ -53,11 +53,11 @@ func Hash(filePath, hashMethod string) (string, error) {
 	return "", errors.New("invalid hash method")
 }
 
-func CompareHash(filepath, expected, hashMethod string) bool {
+func CompareHash(filepath, expected, hashMethod string) (bool, error) {
 	hashStr, err := Hash(filepath, hashMethod)
 	if err != nil {
-		return false
+		return false, err
 	}
 
-	return expected == hashStr
+	return expected == hashStr, nil
 }
