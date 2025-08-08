@@ -96,7 +96,7 @@ func backup() {
 	scanned := 0
 	errored := 0
 	for file := range channel {
-		// Can't hash a file
+		// Can't hash a directory
 		if file.IsDirectory {
 			continue
 		}
