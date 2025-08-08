@@ -14,10 +14,11 @@ import (
 )
 
 var Color = map[string]string{
-	"ERROR":   color.RedString("[✕]"),
-	"LOADING": color.BlueString("[*]"),
-	"SUCCESS": color.GreenString("[✓]"),
-	"WARNING": color.YellowString("[✕]"),
+	"ERROR":   color.HiRedString("[✕]"),
+	"INFO":    color.HiCyanString("[i]"),
+	"LOADING": color.HiBlueString("[*]"),
+	"SUCCESS": color.HiGreenString("[✓]"),
+	"WARNING": color.HiYellowString("[✕]"),
 }
 
 var (
@@ -67,12 +68,12 @@ func main() {
 	}
 
 	if backupMode {
-		fmt.Println("Backing up: ", backupDirectory)
+		fmt.Println("[i] Backing up: ", backupDirectory)
 		backup()
 	}
 
 	if checkupMode {
-		fmt.Print("Hello its checkup time.")
+		fmt.Println("[]")
 	}
 }
 
