@@ -49,7 +49,7 @@ func main() {
 
 	flag.StringVar(&backupFile, "file", fmt.Sprint("backup", time.Now().Unix()), "Path to save backup file")
 
-	flag.StringVar(&backupDirectory, "dir", "", "Directory that needs to be backed up")
+	flag.StringVar(&backupDirectory, "dir", ".", "Directory that needs to be backed up")
 	flag.StringVar(&hashMode, "hash", "MD5", "Hash to use for integrity check")
 	flag.BoolVar(&verbose, "v", false, "Make the operation verbose")
 
