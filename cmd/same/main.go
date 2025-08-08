@@ -68,14 +68,17 @@ func main() {
 	}
 
 	if backupMode {
-		fmt.Println("[i] Backing up: ", backupDirectory)
+		fmt.Printf("%s Backing up: %s\n", Color["INFO"], backupDirectory)
 		backup()
 	}
 
 	if checkupMode {
-		fmt.Println("[]")
+		fmt.Printf("%s Check-up started using: %s\n", Color["INFO"], backupFile)
+		checkup()
 	}
 }
+
+func checkup() {}
 
 func backup() {
 	channel := make(chan *scanner.File, 100)
