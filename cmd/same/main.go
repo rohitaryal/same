@@ -107,7 +107,7 @@ func checkup() {
 	var invalidFiles []*scanner.File
 
 	for file := range channel {
-		if file.Errored && file.Remarks == "INVALID HASH" {
+		if file.Errored {
 			errored += 1
 			invalidFiles = append(invalidFiles, file)
 		} else {
@@ -124,7 +124,7 @@ func checkup() {
 		fmt.Printf("\n%s %d files with compromised integrity:", Color["WARNING"], len(invalidFiles))
 
 		for _, file := range invalidFiles {
-			fmt.Printf("\n\t%s %s", color.BlueString("-"), file.FullPath)
+			fmt.Printf("\n\t%s %s [%s]", color.BlueString("-"), file.FullPath, file.Remarks)
 		}
 	}
 
@@ -139,11 +139,20 @@ func nestedCheck(file *scanner.File, channel chan *scanner.File) {
 		return
 	}
 
-	// Tricky but not really
-	file.Errored = !hasher.CompareHash(file.FullPath, file.Remarks, hashMode)
+	res, err := hasher.CompareHash(file.FullPath, file.Remarks, hashMode)
+	// Yes always forgot to invert
+	file.Errored = !res
 
-	if file.Errored {
-		file.Remarks = "INVALID HASH"
+	if err != nil {
+		if os.IsNotExist(err) {
+			file.Remarks = "DELETED"
+		} else if os.IsPermission(err) {
+			file.Remarks = "DENIED"
+		} else {
+			file.Remarks = "UNKNOWN"
+		}
+	} else if !res {
+		file.Remarks = "INVALID_HASH"
 	}
 
 	channel <- file
