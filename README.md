@@ -9,6 +9,12 @@ go build -o same ./cmd/same
 ./same --help
 ```
 
+## How does it look?
+
+<p style="text-align: center">
+<img src="./assets/display.gif" style="max-width: 500px;border-radius:1rem;">
+</p>
+
 ## Help
 
 ```bash
