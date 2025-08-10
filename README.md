@@ -17,17 +17,20 @@ go build -o same ./cmd/same
 
 ## Help
 
-```bash
-same: File integrity checker
-  -b    Initiates backup mode of a directory (default true)
-  -c    Initiates checkup mode using a backup file
-  -dir string
-        Directory that needs to be backed up (default ".")
-  -file string
-        Path to save backup file (default "backup1754619205")
-  -hash string
-        Hash to use for integrity check (default "MD5")
-  -v    Make the operation verbose
+```txt
+ same: File integrity verification tool
 
-Author: @rohitaryal :)
+  -check
+        Initiates integrity checkup using backup file
+  -dir string
+        Direcory to be backed up (default ".")
+  -file string
+        Path to save/saved backup file
+  -hash string
+        Hash to use for integrity check [md5, size, sha256] (default "md5")
+  -init
+        Initiates hash backup for a path
+
+Backup Example: same -init -dir /home/user/Downloads -hash md5
+Checkiup Example: same -chech -file backup-1.same -hash md5
 ```
