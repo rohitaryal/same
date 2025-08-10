@@ -10,9 +10,12 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func Hash(filePath, hashMethod string) (string, error) {
+	hashMethod = strings.ToUpper(hashMethod)
+
 	file, err := os.Open(filePath)
 	if err != nil {
 		return "", err
